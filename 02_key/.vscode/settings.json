@@ -1,0 +1,20 @@
+{
+  "cSpell.words": [
+    "fdiagnostics",
+    "ffast",
+    "SRCS"
+  ],
+  "idf.currentSetup": "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/",
+  "idf.portWin": "COM4",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/**",
+    "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/components/**"
+  ],
+  "idf.flashType": "UART",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "IDF_TARGET": "esp32s3"
+  },
+}
