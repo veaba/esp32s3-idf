@@ -26,15 +26,15 @@ void gptimer_init(timg_config_t *timg_config)
     timer_config.auto_reload = timg_config->auto_reload;
     timer_config.clk_src = timg_config->src_clk;
     timer_config.counter_dir = GPTIMER_COUNT_UP;
-    timer_config.counter_en = TIMER_PAUSE;               // 先暂停定时器，配置完成后再启动
-    timer_config.divider = clk_src_hz / 1 * 1000 * 1000; // 将时钟频率转换为MHz，得到每微秒的计数值
+    timer_config.counter_en = TIMER_PAUSE;                 // 先暂停定时器，配置完成后再启动
+    timer_config.divider = clk_src_hz / (1 * 1000 * 1000); // 将时钟频率转换为MHz，得到每微秒的计数值
 
     ESP_ERROR_CHECK(timer_init(timg_config->timer_group, timg_config->timer_idx, &timer_config));                       // 初始化定时器
     ESP_ERROR_CHECK(timer_set_counter_value(timg_config->timer_group, timg_config->timer_idx, 0));                      // 将定时器计数值清零
     ESP_ERROR_CHECK(timer_set_alarm_value(timg_config->timer_group, timg_config->timer_idx, timg_config->alarm_value)); // 设置定时器报警值
 
-    ESP_ERROR_CHECK(timer_enable_intr(timg_config->timer_group, timg_config->timer_idx));                                         // 使能定时器中断
-    ESP_ERROR_CHECK(timer_isr_callback_add(timg_config->timer_group, timg_config->timer_idx, timer_group_isr_callback, NULL, 0)); // 注册定时器中断回调函数
+    ESP_ERROR_CHECK(timer_enable_intr(timg_config->timer_group, timg_config->timer_idx));                                                // 使能定时器中断
+    ESP_ERROR_CHECK(timer_isr_callback_add(timg_config->timer_group, timg_config->timer_idx, timer_group_isr_callback, timg_config, 0)); // 注册定时器中断回调函数
 
     ESP_ERROR_CHECK(timer_start(timg_config->timer_group, timg_config->timer_idx)); // 启动定时器
 }
