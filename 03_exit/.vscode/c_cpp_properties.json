@@ -3,6 +3,7 @@
         {
             "name": "ESP-IDF",
             "includePath": [
+                "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/components/**",
                 "${config:idf.espIdfPath}/components/**",
                 "${config:idf.espIdfPathWin}/components/**",
                 "${config:idf.espAdfPath}/components/**",
@@ -11,6 +12,7 @@
             ],
             "browse": {
                 "path": [
+                    "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/components",
                     "${config:idf.espIdfPath}/components",
                     "${config:idf.espIdfPathWin}/components",
                     "${config:idf.espAdfPath}/components/**",
@@ -19,7 +21,7 @@
                 ],
                 "limitSymbolsToIncludedHeaders": false
             },
-            "configurationProvider": "ms-vscode.cmake-tools"  /* 解决 browse.path 中未找到包含文件 */
+            "configurationProvider": "espressif.esp-idf"
         }
     ],
     "version": 4
