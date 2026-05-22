@@ -10,6 +10,6 @@ void app_main(void)
 
   while (1)
   {
-    vTaskDelay(10); // 延时100ms，避免按键抖动
+    vTaskDelay(pdMS_TO_TICKS(100)); // 延时100ms，避免按键抖动
   }
 }
