@@ -4,6 +4,7 @@
     "esptimer",
     "fdiagnostics",
     "ffast",
+    "GPTIMER",
     "IRAM",
     "SRCS",
     "uart"
