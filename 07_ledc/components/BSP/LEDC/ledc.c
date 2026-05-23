@@ -13,9 +13,14 @@
 /**
  * 当 duty=100 时，计算出 16384，超过了 LEDC 的最大值 16383，溢出导致行为异常。
  * 同时 14 位分辨率下每个 step 太大（16384/100 ≈ 164），导致亮度变化不平滑
+ * @param duty 0-100 百分比
+ * @param duty_resolution PWM 分辨率，单位 bit
+ * 示例：duty = 50（50%），duty_resolution = 8（最大 255），计算结果为 127，符合预期。duty = 100（100%），duty_resolution = 8，计算结果为 255，符合预期。
+ * 计算整数，作为寄存器所需
  */
 uint32_t ledc_duty_pow(uint32_t duty, uint8_t duty_resolution)
 {
+  printf("duty: %lu, pwm: %lu\n", duty, duty_resolution);
   return (duty * ((1 << duty_resolution) - 1)) / 100;
 }
 
