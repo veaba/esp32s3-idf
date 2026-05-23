@@ -73,9 +73,8 @@ esp_err_t i2c_transfer(i2c_obj_t *self, uint16_t addr, size_t n, i2c_buf_t *bufs
 
   if (flags & I2C_FLAG_WRITE)
   {
-    i2c_master_start(cmd);                                 // 发送起始信号
-    i2c_master_write_byte(cmd, (addr << 1), ACK_CHECK_EN); // 发送设备地址和写标志
-    // i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN); // 发送设备地址和写标志
+    i2c_master_start(cmd);                                     // 发送起始信号
+    i2c_master_write_byte(cmd, (addr << 1), ACK_CHECK_EN);     // 发送设备地址和写标志
     i2c_master_write(cmd, bufs->buf, bufs->len, ACK_CHECK_EN); // 发送数据
     data_len += bufs->len;
     --n;

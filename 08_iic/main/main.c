@@ -20,6 +20,7 @@ void app_main(void)
 {
 
   uint8_t key;
+  led_init();                        // 初始化 LED
   i2c0_master = iic_init(I2C_NUM_0); // 初始化 I2C0
   xl9555_init(i2c0_master);          // 初始化 XL9555
   display_info();

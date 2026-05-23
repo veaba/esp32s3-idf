@@ -46,7 +46,6 @@ uint16_t xl9555_pin_write(uint16_t pin, int val)
     {
       w_data[0] &= ~(uint8_t)(0xFF & pin);
     }
-    w_data[0] = temp;
   }
   else
   {
@@ -164,15 +163,15 @@ uint8_t xl9555_key_scan(uint8_t mode)
     {
       key_val = KEY0_PRES;
     }
-    else if (KEY1 == 0)
+    if (KEY1 == 0)
     {
       key_val = KEY1_PRES;
     }
-    else if (KEY2 == 0)
+    if (KEY2 == 0)
     {
       key_val = KEY2_PRES;
     }
-    else if (KEY3 == 0)
+    if (KEY3 == 0)
     {
       key_val = KEY3_PRES;
     }
