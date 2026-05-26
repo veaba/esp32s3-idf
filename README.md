@@ -12,11 +12,16 @@
 | `08_iic`      | `宇宙为你发声，宇宙为你闪烁` |
 | `09_eeprom`   | `宇宙为你写下存档`          |
 
+## helper
+
+| project     | description    |
+|-------------|----------------|
+| `code_diff` | `项目对比工具` |
+
 ## clion 配置
 
-<!-- ![clion-tools-chain](docs/public/clion-tools-chain.png)
-
-![clion-cmake](docs/public/clion-cmake.png) -->
+![clion-tools-chain](docs/public/clion-tools-chain.png)
+![clion-cmake](docs/public/clion-cmake.png)
 
 ## debug 技巧
 
