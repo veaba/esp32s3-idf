@@ -91,6 +91,18 @@ typedef struct _lcd_obj_t
   uint16_t cs;      /* 片选IO */
 } lcd_obj_t;
 
+/**自动换行封装*/
+typedef struct
+{
+  uint16_t x_start;  // 左边距（绝对坐标）
+  uint16_t x;        // 当前光标X坐标
+  uint16_t y;        // 当前光标Y坐标
+  uint16_t width;    // 文本区域宽度（像素）
+  uint16_t height;   // 文本区域高度（像素）
+  uint8_t font_size; // 字体大小
+  uint16_t color;    // 文字颜色（可选，也可作为参数传入）
+} TextBox;
+
 /* LCD缓存大小设置，修改此值时请注意！！！！修改这两个值时可能会影响以下函数 lcd_clear/lcd_fill/lcd_draw_line */
 #define LCD_TOTAL_BUF_SIZE (320 * 240 * 2)
 #define LCD_BUF_SIZE 15360
@@ -117,4 +129,11 @@ void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
 void lcd_draw_pixel(uint16_t x, uint16_t y, uint16_t color);                                                          /* 绘画一个像素点 */
 void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint8_t size, uint8_t mode, uint16_t color);                  /* 在指定位置显示一个字符 */
 
+/********** 盒子模型封装，文本自动换行 **/
+void text_box_init(TextBox *box, uint16_t x, uint16_t y,
+                   uint16_t width, uint16_t height, uint8_t font_size);
+void text_box_reset(TextBox *box);
+void text_box_set_color(TextBox *box, uint16_t color);
+void text_box_print(TextBox *box, const char *str, uint16_t color);
+void text_box_print_simple(TextBox *box, const char *str, uint16_t color);
 #endif

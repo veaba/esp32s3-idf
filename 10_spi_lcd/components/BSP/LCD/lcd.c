@@ -654,7 +654,7 @@ void lcd_init(void)
   int cmd = 0;
   esp_err_t ret = 0;
 
-  lcd_self.dir = 0;
+  lcd_self.dir = 0; // 0 横屏， 1 竖屏
   lcd_self.wr = LCD_NUM_WR;
   lcd_self.cs = LCD_NUM_CS;
 
@@ -727,7 +727,186 @@ void lcd_init(void)
     cmd++;
   }
 
-  lcd_display_dir(1); // 设置屏幕方向
-  LCD_PWR(1);         // 开启背光
-  lcd_clear(WHITE);   // 清屏
+  lcd_display_dir(lcd_self.dir); // 设置屏幕方向，1=竖屏，0=横屏
+  LCD_PWR(1);                    // 开启背光
+  lcd_clear(WHITE);              // 清屏
+}
+
+// ==================== 盒子封装 ====================
+/**
+ * @brief 初始化文本框
+ * @param box       文本框指针
+ * @param x         起始X坐标
+ * @param y         起始Y坐标
+ * @param width     区域宽度
+ * @param height    区域高度
+ * @param font_size 字体大小
+ */
+void text_box_init(TextBox *box, uint16_t x, uint16_t y,
+                   uint16_t width, uint16_t height, uint8_t font_size)
+{
+  box->x_start = x;
+  box->x = x;
+  box->y = y;
+  box->width = width;
+  box->height = height;
+  box->font_size = font_size;
+  box->color = 0xFFFF; // 默认白色
+}
+
+// ==================== 重置光标到起始位置 ====================
+void text_box_reset(TextBox *box)
+{
+  box->x = box->x_start;
+  // 注意：y坐标不重置，如果你需要重置Y，可以加参数
+}
+
+// ==================== 设置文字颜色 ====================
+void text_box_set_color(TextBox *box, uint16_t color)
+{
+  box->color = color;
+}
+
+// ==================== 核心打印函数（封装你的原函数）====================
+/**
+ * @brief 在文本框中打印字符串（自动换行）
+ * @param box   文本框指针
+ * @param str   要打印的字符串
+ * @param color 文字颜色（如果传入0，则使用box中的默认颜色）
+ */
+void text_box_print(TextBox *box, const char *str, uint16_t color)
+{
+  // 如果指定了颜色，临时保存并恢复
+  uint16_t old_color = box->color;
+  if (color != 0)
+  {
+    box->color = color;
+  }
+
+  // 计算剩余高度（像素）
+  uint16_t remaining_height = (box->y + box->font_size <= box->height) ? (box->height - box->y) : 0;
+
+  // 临时变量，用于逐行处理
+  char line_buffer[256]; // 假设一行最长256字符
+  uint16_t line_len = 0;
+  uint16_t max_chars_per_line = box->width / (box->font_size / 2); // 每行最大字符数
+
+  // 遍历字符串
+  while (*str != '\0')
+  {
+    // 处理换行符
+    if (*str == '\n')
+    {
+      // 显示当前行
+      if (line_len > 0)
+      {
+        line_buffer[line_len] = '\0';
+        // 调用你的原函数显示这一行
+        lcd_show_string(box->x, box->y,
+                        box->width, remaining_height,
+                        box->font_size, line_buffer, box->color);
+        // 更新光标位置（原函数会自动换行，但我们手动管理）
+        box->y += box->font_size;
+        box->x = box->x_start;
+        line_len = 0;
+      }
+      else
+      {
+        // 空行，直接换行
+        box->y += box->font_size;
+        box->x = box->x_start;
+      }
+      str++;
+      continue;
+    }
+
+    // 只处理可打印字符
+    if (*str >= ' ' && *str <= '~')
+    {
+      // 检查是否会超出宽度（通过字符数估算）
+      if (line_len >= max_chars_per_line)
+      {
+        // 当前行已满，先显示
+        line_buffer[line_len] = '\0';
+        lcd_show_string(box->x, box->y,
+                        box->width, remaining_height,
+                        box->font_size, line_buffer, box->color);
+        // 换行
+        box->y += box->font_size;
+        box->x = box->x_start;
+        line_len = 0;
+
+        // 检查是否超出高度
+        if (box->y + box->font_size > box->height)
+        {
+          break;
+        }
+      }
+
+      // 添加字符到缓冲区
+      line_buffer[line_len++] = *str;
+    }
+
+    str++;
+  }
+
+  // 显示最后一行
+  if (line_len > 0)
+  {
+    line_buffer[line_len] = '\0';
+    lcd_show_string(box->x, box->y,
+                    box->width, remaining_height,
+                    box->font_size, line_buffer, box->color);
+  }
+
+  // 恢复原颜色
+  if (color != 0)
+  {
+    box->color = old_color;
+  }
+}
+
+// ==================== 更简单的版本（直接调用原函数，不做行缓冲）====================
+/**
+ * @brief 简化版打印（直接使用原函数的自动换行）
+ */
+void text_box_print_simple(TextBox *box, const char *str, uint16_t color)
+{
+  // 直接用原函数，传入当前光标位置和区域大小
+  lcd_show_string(box->x, box->y,
+                  box->width - (box->x - box->x_start), // 剩余宽度
+                  box->height - box->y,                 // 剩余高度
+                  box->font_size, (char *)str, color);
+
+  // 更新文本框的光标位置（需要模拟原函数执行后的位置）
+  // 简单方案：重新计算最后一行位置
+  uint16_t lines = 0;
+  const char *p = str;
+  uint16_t chars_per_line = (box->width - (box->x - box->x_start)) / (box->font_size / 2);
+  uint16_t char_count = 0;
+
+  while (*p)
+  {
+    if (*p == '\n')
+    {
+      lines++;
+      char_count = 0;
+    }
+    else if (*p >= ' ' && *p <= '~')
+    {
+      char_count++;
+      if (char_count >= chars_per_line)
+      {
+        lines++;
+        char_count = 0;
+      }
+    }
+    p++;
+  }
+  if (char_count > 0)
+    lines++;
+
+  // 更新Y坐标
+  box->y += lines * box->font_size;
+  box->x = box->x_start;
 }

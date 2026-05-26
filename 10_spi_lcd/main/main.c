@@ -104,11 +104,25 @@ void app_main(void)
     }
     }
 
-    // LCD SHOW
-    lcd_show_string(10, 40, 240, 32, 32, "ESP32", RED);
-    lcd_show_string(10, 80, 240, 24, 24, "SPI LCD TEST", RED);
-    lcd_show_string(10, 110, 240, 16, 16, "HELLO", RED);
-    lcd_show_string(10, 150, 240, 12, 12, "WORLD", RED);
+    // LCD SHOW，默认 dmeo
+    // lcd_show_string(10, 40, 240, 32, 32, "ESP32", RED);
+    // lcd_show_string(10, 80, 240, 24, 24, "SPI LCD TEST", RED);
+    // lcd_show_string(10, 110, 240, 16, 16, "HELLO", RED);
+    // lcd_show_string(10, 150, 240, 12, 12, "WORLD", RED);
+    // lcd_show_string(10, 180, 240, 16, 16, "Tang Minjie, where is your 450MT ?", RED);
+
+    // 改进换行
+    TextBox box;
+    // 初始化文本框：从(10,10)开始，宽300像素，高200像素，字体16px
+    text_box_init(&box, 10, 10, 240, 320, 16);
+    // 设置颜色（可选）
+    text_box_set_color(&box, RED);
+
+    // 方式1：直接打印（自动换行）
+    text_box_print(&box, "Tang Minjie, where is your:", RED);
+    box.y += 30;
+    box.font_size = 24;
+    text_box_print(&box, "CF 450 MT", RED);
 
     x++;
 
@@ -118,6 +132,6 @@ void app_main(void)
     }
 
     LED_TOGGLE();
-    vTaskDelay(pdMS_TO_TICKS(10)); // 延时 100ms
+    vTaskDelay(pdMS_TO_TICKS(2)); // 延时 10ms
   }
 }
