@@ -5,7 +5,6 @@
 #include "nvs_flash.h"
 #include "led.h"
 #include "lcd.h"
-// #include <time.h>
 
 i2c_obj_t i2c0_master;
 
@@ -54,55 +53,55 @@ void app_main(void)
   while (1)
   {
 
-    switch (x)
-    {
-    case 0:
-    {
-      lcd_clear(WHITE);
-      break;
-    }
-    case 1:
-    {
-      lcd_clear(BLACK);
-      break;
-    }
+    // switch (x)
+    // {
+    // case 0:
+    // {
+    //   lcd_clear(WHITE);
+    //   break;
+    // }
+    // case 1:
+    // {
+    //   lcd_clear(BLACK);
+    //   break;
+    // }
 
-    case 2:
-    {
-      lcd_clear(RED);
-      break;
-    }
+    // case 2:
+    // {
+    //   lcd_clear(RED);
+    //   break;
+    // }
 
-    case 3:
-    {
-      lcd_clear(GREEN);
-      break;
-    }
-    case 4:
-    {
-      lcd_clear(BLUE);
-      break;
-    }
-    case 5:
-    {
-      lcd_clear(MAGENTA);
-      break;
-    }
-    case 6:
-    {
-      lcd_clear(YELLOW);
-      break;
-    }
-    case 7:
-    {
-      lcd_clear(CYAN);
-      break;
-    }
-    default:
-    {
-      break;
-    }
-    }
+    // case 3:
+    // {
+    //   lcd_clear(GREEN);
+    //   break;
+    // }
+    // case 4:
+    // {
+    //   lcd_clear(BLUE);
+    //   break;
+    // }
+    // case 5:
+    // {
+    //   lcd_clear(MAGENTA);
+    //   break;
+    // }
+    // case 6:
+    // {
+    //   lcd_clear(YELLOW);
+    //   break;
+    // }
+    // case 7:
+    // {
+    //   lcd_clear(CYAN);
+    //   break;
+    // }
+    // default:
+    // {
+    //   break;
+    // }
+    // }
 
     // LCD SHOW，默认 dmeo
     // lcd_show_string(10, 40, 240, 32, 32, "ESP32", RED);
@@ -132,6 +131,6 @@ void app_main(void)
     }
 
     LED_TOGGLE();
-    vTaskDelay(pdMS_TO_TICKS(2)); // 延时 10ms
+    vTaskDelay(pdMS_TO_TICKS(10)); // 延时 10ms
   }
 }
