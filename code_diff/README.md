@@ -62,3 +62,13 @@ uv run vscode-diff  ../10_spilcd/components/BSP/SPI/spi.c ../10_spi_lcd/componen
 
 
 ```
+
+### 测试 12
+
+```shell
+uv run vscode-diff ../16_infrared_reception/components/BSP/MyIIC/myiic.c ../12_infrared/components/BSP/MyIIC/myiic.c ✅
+uv run vscode-diff ../16_infrared_reception/components/BSP/MyIIC/myiic.h ../12_infrared/components/BSP/MyIIC/myiic.h ✅
+uv run vscode-diff ../16_infrared_reception/components/BSP/RMT_RX/rmt_nec_rx.c ../12_infrared/components/BSP/RMT_RX/rmt_nec_rx.c ✅
+uv run vscode-diff ../16_infrared_reception/components/BSP/RMT_RX/rmt_nec_rx.h ../12_infrared/components/BSP/RMT_RX/rmt_nec_rx.h ✅
+uv run vscode-diff ../16_infrared_reception/main/main.c ../12_infrared/main/main.c 
+```

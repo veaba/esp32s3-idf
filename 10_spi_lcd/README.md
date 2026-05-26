@@ -1,4 +1,4 @@
-# 09_iic_eeprom
+# 10_spi_lcd
 
 > 宇宙为你闪烁
 
