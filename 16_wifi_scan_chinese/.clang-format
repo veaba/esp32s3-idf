@@ -1,0 +1,2 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Attach # 关键配置：大括号附加在同一行
