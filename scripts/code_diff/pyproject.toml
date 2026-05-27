@@ -1,0 +1,86 @@
+[project]
+name = "esp32-diff"
+version = "0.1.0"
+description = "ESP32 项目代码深度对比与重构工具，基于 AST 分析"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Your Name", email = "your@email.com" }]
+keywords = ["esp32", "code-comparison", "ast", "esp-idf", "embedded"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Build Tools",
+]
+
+dependencies = [
+  "tree-sitter==0.22.0",
+  "pyyaml>=6.0.1",
+  "rich>=13.7.0",
+  "typer>=0.9.0",
+  "pydantic>=2.6.0",
+  "tree-sitter-c>=0.24.2",
+  "pillow>=12.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-cov>=4.1.0",
+  "black>=24.0.0",
+  "ruff>=0.2.0",
+  "mypy>=1.8.0",
+  "pre-commit>=3.6.0",
+]
+
+tui = ["textual>=0.52.0", "textual-dev>=1.2.0"]
+
+all = ["esp32-diff[dev,tui]"]
+
+[project.scripts]
+esp32-diff = "comparator:cli_main"
+vscode-diff = "vscode_diff:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/esp32-diff"
+Documentation = "https://github.com/yourusername/esp32-diff#readme"
+Repository = "https://github.com/yourusername/esp32-diff.git"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["comparator.py", "ast_analyzer.py", "call_graph.py", "code_regenerator.py", "diff_visualizer.py", "setup_tree_sitter.py"]
+
+[tool.uv]
+# 锁定平台的特定依赖
+constraint-dependencies = ["tree-sitter>=0.20.0"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

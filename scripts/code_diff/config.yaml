@@ -1,0 +1,47 @@
+# 对比配置
+comparison:
+  # 忽略的模式
+  ignore_patterns:
+    - "build/*"
+    - "managed_components/*"
+    - "*.o"
+    - "*.bin"
+
+  # 关注的扩展名
+  source_extensions:
+    - ".c"
+    - ".h"
+    - ".cpp"
+
+  # 相似度阈值
+  similarity_threshold: 0.85
+
+# 重新生成规则
+regeneration:
+  # 代码风格
+  style:
+    indent_size: 4
+    use_tabs: false
+    brace_style: "same_line" # 大括号风格
+
+  # 注释模板
+  comment_templates:
+    function: |
+      /**
+       * @brief {brief}
+       * @param {params}
+       * @return {return}
+       */
+
+    file_header: |
+      /**
+       * @file {filename}
+       * @author Generated
+       * @date {date}
+       */
+
+# 报告配置
+report:
+  formats: ["json", "html"]
+  include_source_snippets: true
+  max_diff_lines: 50
