@@ -141,7 +141,7 @@ void wifi_scan(void) {
 
     sprintf(lcd_buff, "scan ssid=%s", ap_info[i].ssid);
 
-    spilcd_show_string(200, 20 * i, 240, 16, 16, lcd_buff, BLUE);
+    spilcd_show_string(150, 20 * i, 240, 16, 16, lcd_buff, BLUE);
     ESP_LOGI(TAG, "SSID \t\t%s", ap_info[i].ssid);
     ESP_LOGI(TAG, "RSSI \t\t%d", ap_info[i].rssi);
     print_auth_mode(ap_info[i].authmode);
