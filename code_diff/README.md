@@ -72,3 +72,9 @@ uv run vscode-diff ../16_infrared_reception/components/BSP/RMT_RX/rmt_nec_rx.c .
 uv run vscode-diff ../16_infrared_reception/components/BSP/RMT_RX/rmt_nec_rx.h ../12_infrared/components/BSP/RMT_RX/rmt_nec_rx.h ✅
 uv run vscode-diff ../16_infrared_reception/main/main.c ../12_infrared/main/main.c 
 ```
+
+### 测试13
+
+```shell
+uv run vscode-diff ../13_wifi_scan/components/BSP/MYWIFI/_my_wifi.c ../13_wifi_scan/components/BSP/MYWIFI/my_wifi.c
+```
