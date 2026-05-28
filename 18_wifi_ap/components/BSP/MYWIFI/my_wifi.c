@@ -72,9 +72,6 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
 
 void wifi_ap_init(void) {
 
-  // wifi_event = xEventGroupCreate();
-
-  // show_chinese_string(0, 80, "WIFI 实验", BLUE, WHITE, lcd_draw_pixel, draw_ascii_char);
   ESP_ERROR_CHECK(esp_netif_init());                // 网卡初始化
   ESP_ERROR_CHECK(esp_event_loop_create_default()); // 事件循环
   esp_netif_create_default_wifi_ap();
@@ -82,7 +79,6 @@ void wifi_ap_init(void) {
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); // wifi 初始化默认设置
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
   ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
-  // ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL));
 
   wifi_config_t wifi_config = WIFI_CONFIG(); // 宏定义配置
 
