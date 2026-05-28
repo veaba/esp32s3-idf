@@ -4,20 +4,20 @@
     "ffast",
     "SRCS"
   ],
-  "idf.currentSetup": "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/",
+  "idf.currentSetup": "${env:IDF_PATH}",
   "idf.portWin": "COM4",
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/**",
-    "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/components/**"
+    "${env:IDF_PATH}/components/**"
   ],
   "idf.flashType": "UART",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
   ],
-"idf.customExtraVars": {
+  "idf.customExtraVars": {
     "IDF_TARGET": "esp32s3"
   },
-  "clangd.path": "D:\\programs-dev\\Espressif\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
+  "clangd.path": "clangd",
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",

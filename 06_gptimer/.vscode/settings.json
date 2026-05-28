@@ -8,13 +8,13 @@
     "IRAM",
     "SRCS"
   ],
-  "idf.currentSetup": "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/",
+  "idf.currentSetup": "${env:IDF_PATH}",
   "idf.portWin": "COM5",
   "idf.flashType": "UART",
-  "clangd.path": "D:\\programs-dev\\Espressif\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
+  "clangd.path": "clangd",
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=f:\\hardware-design\\esp32s3-idf\\03_exit\\build"
-  ]
+    "--compile-commands-dir=${workspaceFolder}/build"
+  ],
 }
