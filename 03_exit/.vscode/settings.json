@@ -6,7 +6,7 @@
     "IRAM",
     "SRCS"
   ],
-  "idf.currentSetup": "${env:IDF_PATH}",
+  "idf.currentSetup": "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/",
   "idf.portWin": "COM4",
   "idf.flashType": "UART",
   "clangd.path": "${env:IDF_TOOLS_PATH}\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",

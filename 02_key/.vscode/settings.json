@@ -4,7 +4,7 @@
     "ffast",
     "SRCS"
   ],
-  "idf.currentSetup": "${env:IDF_PATH}",
+  "idf.currentSetup": "D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/",
   "idf.portWin": "COM4",
   "C_Cpp.default.includePath": [
     "${workspaceFolder}/**",

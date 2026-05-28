@@ -34,7 +34,7 @@ void connect_display(uint8_t flag) {
     spilcd_show_string(0, 150, 240, 16, 16, lcd_buff, WHITE);
     // 失败
   } else if (flag == 1) {
-    spilcd_show_string(0, 150, 240, 16, 16, "wifi connet fail", RED);
+    spilcd_show_string(0, 150, 240, 16, 16, "wifi connect fail", RED);
   } else {
     // 连接中
     spilcd_show_string(0, 150, 240, 16, 16, "wifi connecting...", BLUE);
@@ -100,7 +100,7 @@ void wifi_sta_init(void) {
 
   show_chinese_string(0, 80, "WIFI 实验", BLUE, WHITE, lcd_draw_pixel, draw_ascii_char);
   ESP_ERROR_CHECK(esp_netif_init());                // 网卡初始化
-  ESP_ERROR_CHECK(esp_event_loop_create_default()); // 时间循环
+  ESP_ERROR_CHECK(esp_event_loop_create_default()); // 事件循环
   sta_netif = esp_netif_create_default_wifi_sta();
   assert(sta_netif);
 

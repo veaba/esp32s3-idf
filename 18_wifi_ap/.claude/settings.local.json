@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where clang-format:*)",
+      "Bash(rtk pip:*)",
+      "Bash(clang-format:*)"
+    ]
+  }
+}
