@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where clang-format:*)",
+      "Bash(rtk pip:*)",
+      "Bash(clang-format:*)",
+      "Bash(rtk ls:*)",
+      "Bash(node test-hello.mjs)",
+      "Bash(node -e \":*)",
+      "Bash(node compare.mjs)",
+      "Bash(node:*)",
+      "Bash(winpty node:*)",
+      "Bash(bun compare.mjs)",
+      "Bash(bun compare2.mjs)",
+      "Bash(bun compare4.mjs)",
+      "Bash(bun compare5.mjs)",
+      "Bash(bun compare6.mjs)",
+      "Bash(bun validate.mjs)",
+      "Bash(idf.py build:*)",
+      "Bash(rtk find:*)",
+      "Bash(/d/programs-dev/Espressif/esp-idf-v5.5.4/idf.py --version)",
+      "Bash(rtk grep:*)"
+    ]
+  }
+}

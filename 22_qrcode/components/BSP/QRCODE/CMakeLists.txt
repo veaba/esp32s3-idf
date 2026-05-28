@@ -1,0 +1,1 @@
+# QRCODE component is registered via components/BSP/CMakeLists.txt
