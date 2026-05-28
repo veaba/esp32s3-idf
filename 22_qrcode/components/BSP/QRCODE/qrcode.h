@@ -21,7 +21,6 @@ int qrcode_encode_string(const char *data, QRErrorCorrectLevel ecl, QRCode *outQ
 
 int qrcode_get_module(int row, int col);
 
-void qrcode_show_wifi(const char *ssid, const char *password, uint8_t module_size);
 void draw_qrcode(QRCode *qr, uint16_t x, uint16_t y, uint8_t module_size);
 void qrcode_show_hello_world(void);
 

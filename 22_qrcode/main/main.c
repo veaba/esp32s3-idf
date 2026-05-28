@@ -1,9 +1,8 @@
 #include "led.h"
 #include "my_spi.h"
-#include "my_wifi.h"
 #include "myiic.h"
 #include "nvs_flash.h"
-// #include "qrcode.h"
+#include "qrcode.h"
 #include "spilcd.h"
 #include "xl9555.h"
 
@@ -24,8 +23,7 @@ void app_main(void) {
   xl9555_init();
   spilcd_init();
 
-  wifi_ap_init();
-
+  qrcode_show_hello_world();
   while (1) {
     LED_TOGGLE();
     vTaskDelay(pdMS_TO_TICKS(500));

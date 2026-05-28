@@ -1,7 +1,6 @@
 set(src_dirs
         LED
         MYIIC
-        MYWIFI
         MYSPI
         SPILCD
         XL9555
@@ -10,7 +9,6 @@ set(src_dirs
 set(include_dirs
         LED
         MYIIC
-        MYWIFI
         MYSPI
         SPILCD
         XL9555

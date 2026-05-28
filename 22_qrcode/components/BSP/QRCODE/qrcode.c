@@ -516,35 +516,6 @@ void draw_qrcode(QRCode *qr, uint16_t x, uint16_t y, uint8_t module_size) {
   }
 }
 
-void qrcode_show_wifi(const char *ssid, const char *password, uint8_t module_size) {
-  char wifi_str[128];
-  if (password && strlen(password) > 0) {
-    snprintf(wifi_str, sizeof(wifi_str), "WIFI:T:WPA;S:%s;P:%s;;", ssid, password);
-  } else {
-    snprintf(wifi_str, sizeof(wifi_str), "WIFI:T:WPA;S:%s;;", ssid);
-  }
-
-  QRCode qr;
-  int ret = qrcode_encode_string(wifi_str, QR_ECLEVEL_M, &qr);
-  if (ret != 0) {
-    spilcd_show_string(0, 100, 240, 24, 16, "QRCode encode failed", RED);
-    return;
-  }
-
-  uint16_t total_px = (qr.width + 8) * module_size;
-  uint16_t cx = (spilcddev.width - total_px) / 2;
-  uint16_t cy = 30;
-  draw_qrcode(&qr, cx, cy, module_size);
-
-  char buf[64];
-  uint16_t text_y = cy + total_px + 5;
-  snprintf(buf, sizeof(buf), "SSID:%s", ssid);
-  spilcd_show_string(0, text_y, 240, 16, 16, buf, BLUE);
-  if (password && strlen(password) > 0) {
-    snprintf(buf, sizeof(buf), "PWD:%s", password);
-    spilcd_show_string(0, text_y + 16, 240, 16, 16, buf, BLUE);
-  }
-}
 
 void qrcode_show_hello_world(void) {
   QRCode qr;
