@@ -9,10 +9,10 @@
   "idf.currentSetup": "${env:IDF_PATH}",
   "idf.portWin": "COM4",
   "idf.flashType": "UART",
-  "clangd.path": "clangd",
+  "clangd.path": "${env:IDF_TOOLS_PATH}\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=${workspaceFolder}/build"
+    "--compile-commands-dir=${workspaceFolder}\\build"
   ]
 }

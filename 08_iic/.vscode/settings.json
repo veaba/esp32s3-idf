@@ -15,7 +15,7 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=${workspaceFolder}/build"
+    "--compile-commands-dir=${workspaceFolder}\\build"
   ],
   "idf.customExtraVars": {}
 }

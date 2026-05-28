@@ -17,11 +17,11 @@
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32s3"
   },
-  "clangd.path": "clangd",
+  "clangd.path": "${env:IDF_TOOLS_PATH}\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=${workspaceFolder}/build"
+    "--compile-commands-dir=${workspaceFolder}\\build"
   ],
   "C_Cpp.intelliSenseEngine": "disabled"
 }
