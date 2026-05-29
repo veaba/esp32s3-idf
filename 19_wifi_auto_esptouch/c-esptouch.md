@@ -886,47 +886,197 @@ esp_err_t esp_esptouch_set_timeout(uint8_t time_s);
 - 当前项目**未调用此函数**，使用默认超时
 - 超时后 SmartConfig 会自动重启扫描
 
-### 12.2 WiFi 断线重连
+### 12.2 WiFi 断线重连（含重试上限）
 
 ```c
-case WIFI_EVENT_STA_DISCONNECTED:
-    esp_wifi_connect();                           // 自动重连
-    xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);  // 清除已连接标志
+#define WIFI_RETRY_MAX 5  // 最大重试次数
+
+static int s_retry_num = 0;
+
+case WIFI_EVENT_STA_DISCONNECTED: {
+    s_retry_num++;
+    if (s_retry_num > WIFI_RETRY_MAX) {
+        // 重试超限 → UDP 通知 APP 失败 → 结束配网
+        wifi_start_udp_notify(1, ((wifi_event_sta_disconnected_t *)event_data)->reason);
+        xEventGroupSetBits(s_wifi_event_group, ESPTOUCH_DONE_BIT);
+    } else {
+        esp_wifi_connect();
+        xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
+    }
     break;
+}
+case WIFI_EVENT_STA_CONNECTED: {
+    s_retry_num = 0;  // 连接成功，重置计数器
+    break;
+}
 ```
 
-- 当前实现：断线后**立即重连**，没有退避策略
-- 不限制重连次数，无限重试
+- 最大重试 **5 次**（由 `WIFI_RETRY_MAX` 控制）
+- 超限后发送 UDP 失败通知并置位 `ESPTOUCH_DONE_BIT` 终止流程
+- 连接成功后重置计数器
 
 ---
 
-## 13 APP 侧完整对接检查清单
+## 13 UDP 反馈协议（新增）
 
-### 13.1 基础对接
+EspTouch ACK 只通知 APP "收到了 SSID+密码"，之后设备是否连上 WiFi、IP 是什么，APP 并不知道。
+C 端新增 **UDP 广播反馈机制**，在连接成功或失败后主动通知 APP。
+
+### 13.1 协议参数
+
+| 参数 | 值 | 说明 |
+|------|---|------|
+| 目标地址 | `255.255.255.255` | 子网广播 |
+| 端口 | `7001` | 由 `WIFI_NOTIFY_PORT` 定义，避免与 EspTouch ACK 端口冲突 |
+| 发送次数 | 3 次 | 由 `WIFI_NOTIFY_COUNT` 定义，防止 UDP 丢包 |
+| 发送间隔 | 500ms | 由 `WIFI_NOTIFY_INTERVAL_MS` 定义 |
+| 数据格式 | JSON | UTF-8 编码，便于 APP 解析 |
+
+### 13.2 JSON 数据格式
+
+#### 成功（`status: 0`）
+
+```json
+{
+  "status": 0,
+  "ip": "192.168.0.3",
+  "mac": "14:c1:9f:41:26:c0",
+  "ssid": "上网冲浪-2.4"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `status` | int | `0` = 连接成功 |
+| `ip` | string | ESP32 获取的 IP 地址 |
+| `mac` | string | ESP32 WiFi STA MAC 地址 |
+| `ssid` | string | 连接的 WiFi SSID |
+
+#### 失败（`status: 1`）
+
+```json
+{
+  "status": 1,
+  "reason": 15,
+  "ssid": "上网冲浪-2.4"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `status` | int | `1` = 连接失败 |
+| `reason` | int | WiFi 断开原因码（IEEE 802.11 reason code） |
+| `ssid` | string | 尝试连接的 WiFi SSID |
+
+常见 reason 码：
+
+| reason | 说明 |
+|--------|------|
+| 2 | 保留 |
+| 15 | AP 关联到期（密码错误常见） |
+| 201 | 找不到 AP |
+
+### 13.3 发送时机
+
+```
+IP_EVENT_STA_GOT_IP
+  │
+  ├─ 获取 IP、MAC
+  ├─ 组装 JSON: {"status":0, "ip":"...", "mac":"...", "ssid":"..."}
+  ├─ 创建 udp_notify_task
+  │    ├─ socket(AF_INET, SOCK_DGRAM, 0)
+  │    ├─ setsockopt(SO_BROADCAST)
+  │    ├─ 循环 3 次:
+  │    │   sendto(255.255.255.255:7001, json)
+  │    │   vTaskDelay(500ms)
+  │    └─ closesocket + vTaskDelete
+
+WIFI_EVENT_STA_DISCONNECTED (重试 > WIFI_RETRY_MAX)
+  │
+  ├─ 获取 reason、ssid
+  ├─ 组装 JSON: {"status":1, "reason":..., "ssid":"..."}
+  ├─ 创建 udp_notify_task
+  │    ├─ 同上发送流程
+  │    └─ ...
+  └─ 置位 ESPTOUCH_DONE_BIT → 结束配网流程
+```
+
+### 13.4 APP 侧对接
+
+APP 在收到 EspTouch ACK 后，应继续监听 UDP 端口 `7001`：
+
+```
+手机 APP 流程：
+  1. EspTouch v2 发送配网数据
+  2. 收到 EspTouch ACK（SSID+密码已送达）
+  3. 启动 UDP 监听，绑定端口 7001
+  4. 等待 ESP32 的 UDP 广播
+  5. 解析 JSON:
+     - status == 0 → 配网成功，获取 IP/MAC
+     - status == 1 → 配网失败，获取 reason 码
+  6. 超时建议：15 秒（WiFi 连接 + DHCP 通常 < 10s）
+```
+
+APP 超时未收到 UDP 广播的可能原因：
+- ESP32 连接 WiFi 后换了子网（与 APP 不在同一广播域）
+- UDP 广播被路由器过滤
+- WiFi 连接过程超过 15 秒
+
+### 13.5 新增头文件
+
+```c
+#include "esp_mac.h"      // esp_read_mac()
+#include "esp_netif.h"     // esp_netif_get_ip_info(), esp_netif_get_handle_from_ifkey()
+#include "lwip/inet.h"     // htonl(), INADDR_BROADCAST
+#include "lwip/sockets.h"  // socket(), sendto(), closesocket()
+```
+
+### 13.6 新增宏定义
+
+```c
+#define WIFI_NOTIFY_PORT       7001   // UDP 反馈端口
+#define WIFI_NOTIFY_COUNT      3      // UDP 广播次数
+#define WIFI_NOTIFY_INTERVAL_MS 500   // UDP 广播间隔(ms)
+#define WIFI_RETRY_MAX         5      // WiFi 断线最大重试次数
+```
+
+---
+
+## 14 APP 侧完整对接检查清单
+
+### 14.1 基础对接
 
 - [x] C 端使用 `SC_TYPE_ESPTOUCH_V2`，APP **必须**使用 EspTouch v2 协议发送
 - [ ] 确认 SSID 和密码的编码方式（包长度编码）
 - [ ] 如需向下兼容 v1，C 端需改为 `SC_TYPE_ESPTOUCH`（将失去 Reserved Data 能力）
 
-### 13.2 EspTouch v2 特有对接
+### 14.2 EspTouch v2 特有对接
 
 - [x] C 端已设置为 `SC_TYPE_ESPTOUCH_V2`，Reserved Data 功能可用
 - [x] Reserved Data 最大 64 字节，通过 `esp_smartconfig_get_rvd_data()` 读取
 - [ ] 当前未启用 AES 加密 → APP 发送明文即可
 - [ ] 如需启用加密 → C 端和 APP 使用**完全相同**的 16 字节 AES-128 密钥
 
-### 13.3 ACK 与完成确认
+### 14.3 ACK 与完成确认
 
-- [ ] APP 发送配网数据后等待 UDP ACK
+- [ ] APP 发送配网数据后等待 EspTouch UDP ACK（协议内置）
 - [ ] ACK 包含 `token` 和 `cellphone_ip`
 - [ ] C 端收到 `SC_EVENT_SEND_ACK_DONE` 后置位 `ESPTOUCH_DONE_BIT`
 - [ ] C 端调用 `esp_smartconfig_stop()` 释放资源
 
-### 13.4 连接状态
+### 14.4 UDP 反馈通知（新增）
 
-- [ ] C 端通过 `IP_EVENT_STA_GOT_IP` 确认成功获取 IP 地址
-- [ ] C 端 `WIFI_EVENT_STA_DISCONNECTED` 触发自动重连
-- [ ] APP 侧应处理各种超时场景（SmartConfig 超时、WiFi 连接超时）
+- [ ] APP 收到 EspTouch ACK 后，监听 UDP 端口 `7001`
+- [ ] 成功时收到 `{"status":0,"ip":"...","mac":"...","ssid":"..."}`
+- [ ] 失败时收到 `{"status":1,"reason":...,"ssid":"..."}`
+- [ ] APP 超时建议 15 秒
+- [ ] C 端发送 3 次，间隔 500ms，防丢包
+
+### 14.5 连接状态
+
+- [x] C 端通过 `IP_EVENT_STA_GOT_IP` 确认成功获取 IP → 发送 UDP 成功通知
+- [x] C 端 `WIFI_EVENT_STA_DISCONNECTED` 重试 5 次后发送 UDP 失败通知 → 结束配网
+- [ ] APP 侧应处理各种超时场景（SmartConfig 超时、WiFi 连接超时、UDP 等待超时）
 
 ---
 
@@ -944,12 +1094,16 @@ case WIFI_EVENT_STA_DISCONNECTED:
 | `wifi_init_config_t` | `WIFI_INIT_CONFIG_DEFAULT()` | WiFi 初始化配置 |
 | `EventGroupHandle_t` | FreeRTOS 事件组 | 状态同步 |
 
-### 14.2 C 端常量
+### 15.2 C 端常量
 
 | 常量 | 值 | 含义 |
 |------|---|------|
 | `CONNECTED_BIT` | `BIT0` (0x01) | WiFi 已连接 + 获取 IP |
 | `ESPTOUCH_DONE_BIT` | `BIT1` (0x02) | SmartConfig 流程完成 |
+| `WIFI_NOTIFY_PORT` | `7001` | UDP 反馈端口 |
+| `WIFI_NOTIFY_COUNT` | `3` | UDP 广播发送次数 |
+| `WIFI_NOTIFY_INTERVAL_MS` | `500` | UDP 广播间隔(ms) |
+| `WIFI_RETRY_MAX` | `5` | WiFi 断线最大重试次数 |
 | `WIFI_IF_STA` | 枚举 | STA 接口 |
 | `WIFI_MODE_STA` | 枚举 | STA 模式 |
 | `WIFI_AUTH_WPA2_PSK` | 枚举 | WPA2-PSK 认证模式 |
@@ -965,6 +1119,8 @@ case WIFI_EVENT_STA_DISCONNECTED:
 | SmartConfig 协议 | **EspTouch v2** (`SC_TYPE_ESPTOUCH_V2`) |
 | 加密模式 | 未启用（明文），可选 AES-128 |
 | Reserved Data | 支持，最多 64 字节 |
+| UDP 反馈 | 端口 7001，广播 3 次间隔 500ms |
+| WiFi 重试上限 | 5 次，超限发送失败通知 |
 | FreeRTOS | ESP-IDF 内置版本 |
 | WiFi 模式 | STA only |
 | NVS 分区大小 | 24KB (0x6000) |
@@ -1009,6 +1165,21 @@ ESP32:         │             │             │        │             │
   │                                                          │
   ├─ UDP ACK → 手机IP ────────────────────────────────────┤
   │   (包含 token + cellphone_ip)                            │
+  │                                                          │
+  │   ┌─ WiFi 连接成功 ─────────────────────────────────┐    │
+  │   │  IP_EVENT_STA_GOT_IP                            │    │
+  │   │                                                 │    │
+  │   │  UDP 广播 x3 (间隔500ms) → 255.255.255.255:7001│    │
+  │   │  {"status":0,"ip":"192.168.0.3",               │    │
+  │   │   "mac":"14:c1:9f:41:26:c0","ssid":"xxx"}      │    │
+  │   └─────────────────────────────────────────────────┘    │
+  │                                                          │
+  │   ┌─ WiFi 连接失败(重试>5次) ──────────────────────┐    │
+  │   │  WIFI_EVENT_STA_DISCONNECTED                    │    │
+  │   │                                                 │    │
+  │   │  UDP 广播 x3 (间隔500ms) → 255.255.255.255:7001│    │
+  │   │  {"status":1,"reason":15,"ssid":"xxx"}          │    │
+  │   └─────────────────────────────────────────────────┘    │
 ```
 
 ---

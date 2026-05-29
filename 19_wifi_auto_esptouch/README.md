@@ -2,7 +2,12 @@
 
 > ESP32-S3 作为 WiFi 热点 (AP)，创建名为 `esp32-s3-wifi` 的 WiFi，并显示连接设备信息
 
-![esp32-s3-wifi](esp32-s3-wifi.png)
+**1. 家庭 Wifi 中看到 `espressif`**：
+
+![esp32-s3-join-wifi-successful.png](esp32-s3-join-wifi-successful.png)
+
+**2. 成功配网**：
+![esp32-s3-smart-config-successful](esp32-s3-smart-config-successful.png)
 
 ## 功能
 
