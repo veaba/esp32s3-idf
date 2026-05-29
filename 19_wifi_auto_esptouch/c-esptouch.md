@@ -183,11 +183,11 @@ wifi_event_handler(arg, event_base, event_id, event_data)
   │
   └─ event_base == SC_EVENT
       ├─ SC_EVENT_SCAN_DONE         → 扫描完成，等待配网
-      ├─ SC_EVENT_FOUND_CHANNEL     → 收到 SSID+密码（核心事件）
+      ├─ SC_EVENT_GOT_SSID_PSWD    → 收到 SSID+密码（核心事件）
       └─ SC_EVENT_SEND_ACK_DONE     → ACK 发送完成 → 置位 ESPTOUCH_DONE_BIT
 ```
 
-### 4.2 SC_EVENT_FOUND_CHANNEL — 核心配网数据接收
+### 4.2 SC_EVENT_GOT_SSID_PSWD — 核心配网数据接收
 
 这是 APP 与 ESP32 交互的关键事件。当 ESP32 在混杂模式下成功解码出手机发来的配网数据时触发。
 
@@ -215,7 +215,7 @@ typedef struct {
 #### 4.2.2 C 端处理逻辑
 
 ```c
-case SC_EVENT_FOUND_CHANNEL: {
+case SC_EVENT_GOT_SSID_PSWD: {
     smartconfig_event_got_ssid_pswd_t *evt = (smartconfig_event_got_ssid_pswd_t *)event_data;
     wifi_config_t wifi_config;
     uint8_t ssid[33] = {0};       // 32 + 1 for null terminator
@@ -266,8 +266,11 @@ esp_err_t esp_smartconfig_get_rvd_data(uint8_t *rvd_data, uint8_t len);
 - **`rvd_data`**：输出缓冲区，接收 APP 传入的自定义数据
 - **`len`**：缓冲区长度，最大 64 字节
 - **返回值**：`ESP_OK` 成功，其他失败
-- **必须在 `SC_EVENT_FOUND_CHANNEL` 事件中使用**，在其他上下文中调用无效
+- **必须在 `SC_EVENT_GOT_SSID_PSWD` 事件中使用**，在其他上下文中调用无效
 - **仅在 `evt->type == SC_TYPE_ESPTOUCH_V2` 时才有数据**
+
+> ⚠️ **重要**：SSID/密码数据在 `SC_EVENT_GOT_SSID_PSWD` 事件中获取，**不是** `SC_EVENT_FOUND_CHANNEL`。
+> `SC_EVENT_FOUND_CHANNEL` 仅表示找到了信道，其 `event_data` 为空，访问会导致空指针崩溃。
 
 #### 4.3.2 Reserved Data 的用途（APP 侧可传递的数据）
 
@@ -401,7 +404,7 @@ ESP_ERROR_CHECK(esp_smartconfig_start(&cfg));
               └───────────┬──────────┘                             │
                           ▼                                         │
               ┌───────────────────────┐                             │
-              │SC_EVENT_FOUND_CHANNEL│ ← 收到APP配网数据            │
+              │SC_EVENT_GOT_SSID_PSWD│ ← 收到APP配网数据            │
               └───────────┬──────────┘                             │
                           │ 获取 SSID, 密码, [RVD Data]             │
                           │ esp_wifi_disconnect()                   │
@@ -598,7 +601,8 @@ ESP_ERROR_CHECK(esp_smartconfig_get_rvd_data(rvd_data, sizeof(rvd_data)));
 | event_id | 名称 | 触发条件 | C 端处理 |
 |----------|------|---------|---------|
 | `SC_EVENT_SCAN_DONE` | 扫描完成 | ESP32 完成信道扫描 | LCD 显示"配网中..." |
-| `SC_EVENT_FOUND_CHANNEL` | 找到信道 | 解码出 SSID+密码 | **核心处理**（见 4.2 节） |
+| `SC_EVENT_FOUND_CHANNEL` | 找到信道 | 锁定AP所在信道 | 仅通知，event_data 为空 |
+| `SC_EVENT_GOT_SSID_PSWD` | 获取SSID密码 | 解码出SSID+密码 | **核心处理**（见 4.2 节） |
 | `SC_EVENT_SEND_ACK_DONE` | ACK 发送完成 | ACK 已发送到手机 | 置位 `ESPTOUCH_DONE_BIT` |
 
 ---
@@ -723,7 +727,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                          "In the distribution network...", BLUE);
       break;
 
-    case SC_EVENT_FOUND_CHANNEL: {
+    case SC_EVENT_GOT_SSID_PSWD: {
       ESP_LOGI(TAG, "Got SSID and password");
       smartconfig_event_got_ssid_pswd_t *evt =
           (smartconfig_event_got_ssid_pswd_t *)event_data;
@@ -1015,13 +1019,13 @@ C 端运行时关键日志输出格式（当前使用 EspTouch v2 协议）：
 
 ```
 I (xxxx) 【smartconfig_task】: scan done.
-I (xxxx) 【smartconfig_task】: Got SSID adn password
-I (xxxx) 【smartconfig_task】: SSID:<ssid_string>
-I (xxxx) 【smartconfig_task】: PASSWORD:<password_string>
+I (xxxx) 【smartconfig_task】: Got SSID and password
+I (xxxx) 【smartconfig_task】: SSID:上网冲浪-2.4
+I (xxxx) 【smartconfig_task】: PASSWORD:a123456789
 I (xxxx) 【smartconfig_task】: RVD_DATA           ← EspTouch v2 必定触发
-<64 hex chars>                                    ← Reserved Data 的 hex dump (前32字节)
+0000000000000000000000000000000000000000000000000000000000000000  ← APP未传RVD时全0
+I (xxxx) 【smartconfig_task】: static ip:192.168.0.3
 I (xxxx) 【smartconfig_task】: Wifi connected to AP
-I (xxxx) 【smartconfig_task】: static ip:192.168.x.x
 I (xxxx) 【smartconfig_task】: smartconfig over
 ```
 

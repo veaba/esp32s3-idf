@@ -101,10 +101,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         spilcd_show_string(10, 110, 320, 16, 16, "In the distribution network...", BLUE);
         break;
 
-        // 查找 channel
-      case SC_EVENT_FOUND_CHANNEL: {
+        // 获取到 SSID 和密码
+      case SC_EVENT_GOT_SSID_PSWD: {
 
-        ESP_LOGI(TAG, "Got SSID adn password");
+        ESP_LOGI(TAG, "Got SSID and password");
 
         smartconfig_event_got_ssid_pswd_t *evt = (smartconfig_event_got_ssid_pswd_t *)event_data;
         wifi_config_t wifi_config;
@@ -126,12 +126,18 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         ESP_LOGI(TAG, "SSID:%s", ssid);
         ESP_LOGI(TAG, "PASSWORD:%s", password);
 
+        if (strlen((char *)password) == 0) {
+          ESP_LOGE(TAG, "Password is empty! APP v2 encoding error");
+          spilcd_fill(0, 110, 320, 240, WHITE);
+          spilcd_show_string(10, 110, 320, 16, 16, "Password is empty!", RED);
+          spilcd_show_string(10, 130, 320, 16, 16, "Check APP encoding", RED);
+          break;
+        }
+
         spilcd_fill(0, 110, 320, 240, WHITE);
-        sprintf(lcd_buff, "%s", ssid);
+        sprintf(lcd_buff, "SSID:%s", ssid);
         spilcd_show_string(10, 110, 320, 16, 16, lcd_buff, BLUE);
-        sprintf(lcd_buff, "%s", password);
-        spilcd_show_string(10, 110, 320, 16, 16, lcd_buff, BLUE);
-        spilcd_show_string(10, 130, 320, 16, 16, "Distribution network is successful.", BLUE);
+        spilcd_show_string(10, 130, 320, 16, 16, "WiFi connecting...", BLUE);
 
         // 手机 APP 通过 EspTouch v2 模式，执行配网
         if (evt->type == SC_TYPE_ESPTOUCH_V2) {
