@@ -10,6 +10,11 @@
 #define CONNECTED_BIT BIT0     // 连接配网
 #define ESPTOUCH_DONE_BIT BIT1 // 配网结束
 
+#define WIFI_NOTIFY_PORT    7001    // UDP 反馈端口
+#define WIFI_NOTIFY_COUNT   3       // UDP 广播次数
+#define WIFI_NOTIFY_INTERVAL_MS 500 // UDP 广播间隔(ms)
+#define WIFI_RETRY_MAX      5       // WiFi 断线最大重试次数
+
 #define WIFI_CONFIG()                                                                                                  \
   {                                                                                                                    \
     .sta = {                                                                                                           \
