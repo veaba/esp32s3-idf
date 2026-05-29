@@ -1,4 +1,4 @@
-# 21_ble_led
+# 19_wifi_auto_esptouch
 
 > ESP32-S3 作为 WiFi 热点 (AP)，创建名为 `esp32-s3-wifi` 的 WiFi，并显示连接设备信息
 
@@ -69,10 +69,29 @@ I (6123) AP: station "xx:xx:xx:xx:xx:xx" leave, AID=1
 | `ESP_LOGI`    | `esp_log.h`      | 日志输出        |
 | `memset`      | `<string.h>`     | 内存设置        |
 | `inet_ntoa_r` | `lwip/sockets.h` | IP 地址转字符串 |
-| `inet_ntoa_r` | `lwip/sockets.h` | IP 地址转字符串 |
 
-### esp_log.h
+## esp32 设备与 EspTouchForHarmony 的关系
 
-| 函数          | 说明            |
-|---------------|-----------------|
-| `ESP_ERROR_CHECK`          | 打印输出        |
+```shell
+
+        +----------+     (已连接)    +-------------+
+        |  手机    | ◄───WiFi────►  | TP-Link 路由器 |
+        +----------+                | (你的WiFi网络) |
+            |                      +-------------+
+            | UDP广播                      │
+            | (ESPTouch协议加密)             │
+            | 数据编码在包长度中               │
+            ▼                               ▼
+        +----------+                  连接成功后
+        | ESP32    | ───────────────► 也接入 TP-Link
+        | (混杂模式)|   获得SSID+密码
+        +----------+
+```
+
+  整个过程：
+
+  1. 手机已连上 TP-Link 的 WiFi
+  2. ESP32 没连任何 WiFi，只打开射频"监听"空中的无线信号
+  3. 手机用 ESPTouch 协议把 SSID + WiFi密码 + BSSID 编码进 UDP 广播包的长度中，发出去
+  4. ESP32 抓到这些空中无线帧，解析出 SSID 和密码
+  5. ESP32 拿着这些凭据，像普通设备一样去连接 TP-Link 路由器
