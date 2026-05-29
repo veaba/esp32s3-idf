@@ -158,9 +158,8 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
 }
 
 static void smartconfig_task(void *parm) {
-  parm = parm;
   EventBits_t uxBits;
-  ESP_ERROR_CHECK(esp_smartconfig_set_type(SC_TYPE_ESPTOUCH));         // 配网协议
+  ESP_ERROR_CHECK(esp_smartconfig_set_type(SC_TYPE_ESPTOUCH_V2));      // 配网协议 v2
   smartconfig_start_config_t cfg = SMARTCONFIG_START_CONFIG_DEFAULT(); // 配网参数
   ESP_ERROR_CHECK(esp_smartconfig_start(&cfg));
 
