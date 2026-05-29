@@ -1,4 +1,5 @@
 #include "esp_event.h"
+#include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
@@ -12,6 +13,7 @@
 #include "xl9555.h"
 #include <stdio.h>
 
+static const char *TAG = "main";
 void flash_init() {
   esp_err_t ret;
   ret = nvs_flash_init(); /* 初始化NVS */
@@ -41,6 +43,13 @@ void app_main(void) {
 
   while (1) {
     LED_TOGGLE();
-    vTaskDelay(pdMS_TO_TICKS(500));
+    uint8_t key = xl9555_key_scan(0);
+    if (key) {
+      ESP_LOGI(TAG, "key pressed: %d", key);
+    }
+    if (key == KEY1_PRES) {
+      wifi_forget_and_reconfig();
+    }
+    vTaskDelay(pdMS_TO_TICKS(20));
   }
 }
