@@ -25,6 +25,25 @@
 | [`21_ble_led`](21_ble_led/)                       | `蓝色的灯，简称蓝灯`          |
 | [`22_qrcode`](22_qrcode/)                         | `出动二维码（二向箔）武器`     |
 
+## 项目演示
+
+### 19.智能组网
+
+<details>
+  <summary> esp32 通过 EspTouchForHarmony App 进行批量组网 </summary>
+
+![app-smart-config-esptouch.png](docs/public/app-smart-config-esptouch.png)
+
+c 项目 `19_wifi_auto_esptouch` + [EsptouchForHarmony 鸿蒙版本 App](https://github.com/veaba/EsptouchForHarmony/) 实现了 `EspTouch_v2` 协议的智能组网的演示，方便将批量的 `esp32` IoT 设备通过手机 App 推送 Wifi 信息，以方便批量组网。
+
+`EspTouchForHarmony` 特性：
+
+- `udp` 嗅探传递组网
+- 二维码组网：扫描 esp32 设备（[`20_wifi_auto_qrcode`](20_wifi_auto_qrcode)）的二维码和手机联网
+- `udp` 组网成功、断开联网都会广播到 `EspTouchForHarmony`
+
+</details>
+
 ## helper
 
 | project                                                              | description                            |

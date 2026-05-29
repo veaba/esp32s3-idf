@@ -1,5 +1,6 @@
 #include "my_wifi.h"
 #include "chinese16_3k.h"
+#include "esp_chip_info.h"
 #include "esp_err.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -19,14 +20,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
-#include <inttypes.h>
 
-static const char *TAG = "【smartconfig_task】";
+static const char *TAG = "wifi";
 static EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 static char s_ssid[33] = {0};
-static void smartconfig_task(void *parm);
+static bool s_forget_mode = false;
+static TaskHandle_t s_smartconfig_task_handle = NULL;
 static char lcd_buff[100] = {0};
 
 void lcd_draw_pixel(uint16_t x, uint16_t y, uint16_t color) { spilcd_draw_point(x, y, color); }
@@ -35,19 +35,48 @@ void draw_ascii_char(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg
   spilcd_show_char(x, y, (uint8_t)c, 16, 0, color);
 }
 
+static const char *get_chip_model_str(esp_chip_model_t model) {
+  switch (model) {
+    case CHIP_ESP32:
+      return "ESP32";
+    case CHIP_ESP32S2:
+      return "ESP32-S2";
+    case CHIP_ESP32C3:
+      return "ESP32-C3";
+    case CHIP_ESP32S3:
+      return "ESP32-S3";
+    case CHIP_ESP32C2:
+      return "ESP32-C2";
+    case CHIP_ESP32C6:
+      return "ESP32-C6";
+    case CHIP_ESP32P4:
+      return "ESP32-P4";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 static void udp_notify_send(int status, const char *ip, uint8_t reason) {
   uint8_t mac[6] = {0};
   esp_read_mac(mac, ESP_MAC_WIFI_STA);
 
-  char json[256] = {0};
+  esp_chip_info_t chip_info;
+  esp_chip_info(&chip_info);
+  const char *chip_model = get_chip_model_str(chip_info.model);
+
+  char json[320] = {0};
   if (status == 0) {
     snprintf(json, sizeof(json),
-             "{\"status\":0,\"ip\":\"%s\",\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\",\"ssid\":\"%s\"}",
-             ip, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], s_ssid);
+             "{\"status\":0,\"ip\":\"%s\",\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\","
+             "\"ssid\":\"%s\",\"chip\":\"%s rev%u.%u\"}",
+             ip, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], s_ssid, chip_model, chip_info.revision >> 8,
+             chip_info.revision & 0xFF);
   } else {
     snprintf(json, sizeof(json),
-             "{\"status\":%d,\"reason\":%d,\"ssid\":\"%s\"}",
-             status, reason, s_ssid);
+             "{\"status\":%d,\"reason\":%d,\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\","
+             "\"ssid\":\"%s\",\"chip\":\"%s rev%u.%u\"}",
+             status, reason, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], s_ssid, chip_model,
+             chip_info.revision >> 8, chip_info.revision & 0xFF);
   }
 
   ESP_LOGI(TAG, "UDP notify: %s", json);
@@ -102,122 +131,13 @@ static void wifi_start_udp_notify(int status, uint8_t reason) {
 void connect_display(uint8_t flag) {
   if (flag == 2) {
     spilcd_fill(0, 110, 320, 240, WHITE);
-    sprintf(lcd_buff, "SSID:%s", s_ssid);
+    snprintf(lcd_buff, sizeof(lcd_buff), "SSID:%s", s_ssid);
     spilcd_show_string(10, 150, 320, 16, 16, lcd_buff, WHITE);
     spilcd_show_string(10, 170, 320, 16, 16, "WiFi connected!", WHITE);
   } else if (flag == 1) {
     spilcd_show_string(10, 150, 320, 16, 16, "wifi connect fail", RED);
   } else {
     spilcd_show_string(10, 150, 320, 16, 16, "wifi connecting...", BLUE);
-  }
-}
-
-static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
-
-  if (event_base == WIFI_EVENT) {
-    switch (event_id) {
-    case WIFI_EVENT_STA_START: {
-      connect_display(0);
-      xTaskCreate(smartconfig_task, "smartconfig_task", 4096, NULL, 3, NULL);
-      break;
-    }
-    case WIFI_EVENT_STA_DISCONNECTED: {
-      s_retry_num++;
-      if (s_retry_num > WIFI_RETRY_MAX) {
-        ESP_LOGE(TAG, "WiFi connect failed after %d retries", WIFI_RETRY_MAX);
-        connect_display(1);
-        wifi_start_udp_notify(1, ((wifi_event_sta_disconnected_t *)event_data)->reason);
-        xEventGroupSetBits(s_wifi_event_group, ESPTOUCH_DONE_BIT);
-      } else {
-        esp_wifi_connect();
-        xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
-        ESP_LOGI(TAG, "retry %d/%d to connect AP", s_retry_num, WIFI_RETRY_MAX);
-      }
-      break;
-    }
-    case WIFI_EVENT_STA_CONNECTED: {
-      s_retry_num = 0;
-      break;
-    }
-    default:
-      break;
-    }
-  } else if (event_base == IP_EVENT) {
-    switch (event_id) {
-    case IP_EVENT_STA_GOT_IP: {
-      ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-      ESP_LOGI(TAG, "static ip:" IPSTR, IP2STR(&event->ip_info.ip));
-      xEventGroupSetBits(s_wifi_event_group, CONNECTED_BIT);
-      show_chinese_string(0, 150, "WIFI 连接成功！", BLUE, WHITE, lcd_draw_pixel, draw_ascii_char);
-      connect_display(2);
-      wifi_start_udp_notify(0, 0);
-      break;
-    }
-    default:
-      break;
-    }
-  } else if (event_base == SC_EVENT) {
-    switch (event_id) {
-    case SC_EVENT_SCAN_DONE:
-      ESP_LOGI(TAG, "scan done.");
-      spilcd_show_string(10, 110, 320, 16, 16, "In the distribution network...", BLUE);
-      break;
-
-    case SC_EVENT_GOT_SSID_PSWD: {
-      ESP_LOGI(TAG, "Got SSID and password");
-      smartconfig_event_got_ssid_pswd_t *evt = (smartconfig_event_got_ssid_pswd_t *)event_data;
-      wifi_config_t wifi_config;
-      uint8_t password[65] = {0};
-      uint8_t rvd_data[65] = {0};
-
-      bzero(&wifi_config, sizeof(wifi_config_t));
-      memcpy(wifi_config.sta.ssid, evt->ssid, sizeof(wifi_config.sta.ssid));
-      memcpy(wifi_config.sta.password, evt->password, sizeof(wifi_config.sta.password));
-      wifi_config.sta.bssid_set = evt->bssid_set;
-
-      if (wifi_config.sta.bssid_set == true) {
-        memcpy(wifi_config.sta.bssid, evt->bssid, sizeof(wifi_config.sta.bssid));
-      }
-
-      memcpy(s_ssid, evt->ssid, sizeof(evt->ssid));
-      memcpy(password, evt->password, sizeof(evt->password));
-      ESP_LOGI(TAG, "SSID:%s", s_ssid);
-      ESP_LOGI(TAG, "PASSWORD:%s", password);
-
-      if (strlen((char *)password) == 0) {
-        ESP_LOGE(TAG, "Password is empty! APP v2 encoding error");
-        spilcd_fill(0, 110, 320, 240, WHITE);
-        spilcd_show_string(10, 110, 320, 16, 16, "Password is empty!", RED);
-        spilcd_show_string(10, 130, 320, 16, 16, "Check APP encoding", RED);
-        break;
-      }
-
-      spilcd_fill(0, 110, 320, 240, WHITE);
-      sprintf(lcd_buff, "SSID:%s", s_ssid);
-      spilcd_show_string(10, 110, 320, 16, 16, lcd_buff, BLUE);
-      spilcd_show_string(10, 130, 320, 16, 16, "WiFi connecting...", BLUE);
-
-      if (evt->type == SC_TYPE_ESPTOUCH_V2) {
-        ESP_ERROR_CHECK(esp_smartconfig_get_rvd_data(rvd_data, sizeof(rvd_data)));
-        ESP_LOGI(TAG, "RVD_DATA");
-        for (int i = 0; i < 32; i++) {
-          printf("%02x", rvd_data[i]);
-        }
-        printf("\n");
-      }
-
-      s_retry_num = 0;
-      ESP_ERROR_CHECK(esp_wifi_disconnect());
-      ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-      esp_wifi_connect();
-      break;
-    }
-
-    case SC_EVENT_SEND_ACK_DONE: {
-      xEventGroupSetBits(s_wifi_event_group, ESPTOUCH_DONE_BIT);
-      break;
-    }
-    }
   }
 }
 
@@ -231,15 +151,168 @@ static void smartconfig_task(void *parm) {
     uxBits = xEventGroupWaitBits(s_wifi_event_group, CONNECTED_BIT | ESPTOUCH_DONE_BIT, true, false, portMAX_DELAY);
 
     if (uxBits & CONNECTED_BIT) {
-      ESP_LOGI(TAG, "Wifi connected to AP");
+      ESP_LOGI(TAG, "Connected to AP SSID: %s", s_ssid);
+      show_chinese_string(0, 150, "WIFI 连接成功！", BLUE, WHITE, lcd_draw_pixel, draw_ascii_char);
+      connect_display(2);
+      wifi_start_udp_notify(0, 0);
     }
 
     if (uxBits & ESPTOUCH_DONE_BIT) {
       ESP_LOGI(TAG, "smartconfig over");
       esp_smartconfig_stop();
+      s_smartconfig_task_handle = NULL;
       vTaskDelete(NULL);
     }
   }
+}
+
+static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
+
+  if (event_base == WIFI_EVENT) {
+    switch (event_id) {
+      case WIFI_EVENT_STA_START: {
+        connect_display(0);
+        if (s_smartconfig_task_handle == NULL) {
+          xTaskCreate(smartconfig_task, "smartconfig_task", 4096, NULL, 3, &s_smartconfig_task_handle);
+        }
+        break;
+      }
+      case WIFI_EVENT_STA_DISCONNECTED: {
+        if (s_forget_mode) {
+          break;
+        }
+        s_retry_num++;
+        if (s_retry_num > WIFI_RETRY_MAX) {
+          ESP_LOGE(TAG, "WiFi connect failed after %d retries", WIFI_RETRY_MAX);
+          connect_display(1);
+          wifi_start_udp_notify(1, ((wifi_event_sta_disconnected_t *)event_data)->reason);
+          xEventGroupSetBits(s_wifi_event_group, ESPTOUCH_DONE_BIT);
+        } else {
+          esp_wifi_connect();
+          xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
+          ESP_LOGI(TAG, "retry %d/%d to connect AP", s_retry_num, WIFI_RETRY_MAX);
+        }
+        break;
+      }
+      case WIFI_EVENT_STA_CONNECTED: {
+        s_retry_num = 0;
+        break;
+      }
+      default:
+        break;
+    }
+  } else if (event_base == IP_EVENT) {
+    switch (event_id) {
+      case IP_EVENT_STA_GOT_IP: {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        xEventGroupSetBits(s_wifi_event_group, CONNECTED_BIT);
+        break;
+      }
+      default:
+        break;
+    }
+  } else if (event_base == SC_EVENT) {
+    switch (event_id) {
+      case SC_EVENT_SCAN_DONE:
+        ESP_LOGI(TAG, "scan done.");
+        spilcd_show_string(10, 110, 320, 16, 16, "In the distribution network...", BLUE);
+        break;
+
+      case SC_EVENT_GOT_SSID_PSWD: {
+        ESP_LOGI(TAG, "Got SSID and password");
+        smartconfig_event_got_ssid_pswd_t *evt = (smartconfig_event_got_ssid_pswd_t *)event_data;
+        wifi_config_t wifi_config;
+        uint8_t password[65] = {0};
+        uint8_t rvd_data[65] = {0};
+
+        bzero(&wifi_config, sizeof(wifi_config_t));
+        memcpy(wifi_config.sta.ssid, evt->ssid, sizeof(wifi_config.sta.ssid));
+        memcpy(wifi_config.sta.password, evt->password, sizeof(wifi_config.sta.password));
+        wifi_config.sta.bssid_set = evt->bssid_set;
+
+        if (wifi_config.sta.bssid_set == true) {
+          memcpy(wifi_config.sta.bssid, evt->bssid, sizeof(wifi_config.sta.bssid));
+        }
+
+        memcpy(s_ssid, evt->ssid, sizeof(evt->ssid));
+        memcpy(password, evt->password, sizeof(evt->password));
+        ESP_LOGI(TAG, "SSID:%s", s_ssid);
+        ESP_LOGI(TAG, "PASSWORD:%s", password);
+
+        if (strlen((char *)password) == 0) {
+          ESP_LOGE(TAG, "Password is empty! APP v2 encoding error");
+          spilcd_fill(0, 110, 320, 240, WHITE);
+          spilcd_show_string(10, 110, 320, 16, 16, "Password is empty!", RED);
+          spilcd_show_string(10, 130, 320, 16, 16, "Check APP encoding", RED);
+          break;
+        }
+
+        spilcd_fill(0, 110, 320, 240, WHITE);
+        snprintf(lcd_buff, sizeof(lcd_buff), "SSID:%s", s_ssid);
+        spilcd_show_string(10, 110, 320, 16, 16, lcd_buff, BLUE);
+        spilcd_show_string(10, 130, 320, 16, 16, "WiFi connecting...", BLUE);
+
+        if (evt->type == SC_TYPE_ESPTOUCH_V2) {
+          ESP_ERROR_CHECK(esp_smartconfig_get_rvd_data(rvd_data, sizeof(rvd_data)));
+          ESP_LOGI(TAG, "RVD_DATA");
+          for (int i = 0; i < 32; i++) {
+            printf("%02x", rvd_data[i]);
+          }
+          printf("\n");
+        }
+
+        s_retry_num = 0;
+        ESP_ERROR_CHECK(esp_wifi_disconnect());
+        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+        esp_wifi_connect();
+        break;
+      }
+
+      case SC_EVENT_SEND_ACK_DONE: {
+        xEventGroupSetBits(s_wifi_event_group, ESPTOUCH_DONE_BIT);
+        break;
+      }
+    }
+  }
+}
+
+void wifi_forget_and_reconfig(void) {
+  ESP_LOGI(TAG, "KEY_BOOT pressed: forgetting WiFi and restarting smartconfig");
+
+  s_forget_mode = true;
+  s_retry_num = WIFI_RETRY_MAX + 1;
+  xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT | ESPTOUCH_DONE_BIT);
+
+  wifi_start_udp_notify(WIFI_NOTIFY_STATUS_DISCONNECT, 0);
+  vTaskDelay(pdMS_TO_TICKS(WIFI_NOTIFY_COUNT * WIFI_NOTIFY_INTERVAL_MS + 500));
+
+  esp_smartconfig_stop();
+
+  if (s_smartconfig_task_handle != NULL) {
+    vTaskDelete(s_smartconfig_task_handle);
+    s_smartconfig_task_handle = NULL;
+  }
+
+  esp_err_t ret = esp_wifi_disconnect();
+  if (ret != ESP_OK && ret != ESP_ERR_WIFI_NOT_CONNECT) {
+    ESP_LOGE(TAG, "wifi disconnect failed: %s", esp_err_to_name(ret));
+  }
+
+  wifi_config_t empty_config = {0};
+  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &empty_config));
+
+  s_ssid[0] = '\0';
+  s_retry_num = 0;
+
+  spilcd_fill(0, 110, 320, 240, WHITE);
+  spilcd_show_string(10, 140, 320, 16, 16, "WiFi disconnected", WHITE);
+  spilcd_show_string(10, 160, 320, 16, 16, "Re-configuring...", BLUE);
+
+  s_forget_mode = false;
+  xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT | ESPTOUCH_DONE_BIT);
+  esp_wifi_connect();
+  xTaskCreate(smartconfig_task, "smartconfig_task", 4096, NULL, 3, &s_smartconfig_task_handle);
 }
 
 void wifi_smart_init(void) {
@@ -261,16 +334,4 @@ void wifi_smart_init(void) {
 
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_start());
-
-  EventBits_t bits =
-      xEventGroupWaitBits(s_wifi_event_group, CONNECTED_BIT | ESPTOUCH_DONE_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-
-  if (bits & CONNECTED_BIT) {
-    ESP_LOGI(TAG, "Connected to ap SSID: %s", s_ssid);
-  } else if (bits & ESPTOUCH_DONE_BIT) {
-    connect_display(1);
-    ESP_LOGI(TAG, "Failed to connect to SSID: %s", s_ssid);
-  } else {
-    ESP_LOGI(TAG, "Unexpected event");
-  }
 }

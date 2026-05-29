@@ -6,7 +6,10 @@
 
 ![esp32-s3-join-wifi-successful.png](esp32-s3-join-wifi-successful.png)
 
-**2. 成功配网**：
+**2. APP 配网**：
+![app-smart-config-esptouch.png](app-smart-config-esptouch.png)
+
+**3. 成功配网**：
 ![esp32-s3-smart-config-successful](esp32-s3-smart-config-successful.png)
 
 ## 功能

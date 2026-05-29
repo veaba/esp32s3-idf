@@ -6,15 +6,17 @@ set(src_dirs
         CHINESE16_3K
         SPILCD
         XL9555
+        KEY
 )
 set(include_dirs
         LED
         MYIIC
         MYWIFI
         MYSPI
-        SPILCD
         CHINESE16_3K
+        SPILCD
         XL9555
+        KEY
 )
 
 set(requires
