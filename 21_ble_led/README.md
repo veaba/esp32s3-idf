@@ -76,3 +76,7 @@ I (6123) AP: station "xx:xx:xx:xx:xx:xx" leave, AID=1
 | 函数          | 说明            |
 |---------------|-----------------|
 | `ESP_ERROR_CHECK`          | 打印输出        |
+
+### BLE 4.2 启动
+
+ BLE 4.2 功能未启用: `sdkconfig` 里 `CONFIG_BT_BLE_42_FEATURES_SUPPORTED` 被禁用了，但代码使用的是经典 Bluedroid API（`esp_ble_gap_config_adv_data` 等），需要启用 → 改为 `CONFIG_BT_BLE_42_FEATURES_SUPPORTED=y`

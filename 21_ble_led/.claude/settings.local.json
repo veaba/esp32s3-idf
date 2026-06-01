@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk ls:*)",
+      "Bash(rtk grep:*)",
+      "Bash(xtensa-esp32s3-elf-nm D:/programs-dev/Espressif/frameworks/esp-idf-v5.5.4/components/bt/controller/lib_esp32c3_family/esp32s3/libbtdm_app.a)",
+      "Bash(xtensa-esp32s3-elf-nm F:/hardware-design/esp32s3-idf/21_ble_led/build/esp-idf/bt/libbt.a)",
+      "Bash(xtensa-esp32s3-elf-ar t:*)"
+    ]
+  }
+}

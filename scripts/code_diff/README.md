@@ -78,3 +78,5 @@ uv run vscode-diff ../16_infrared_reception/main/main.c ../12_infrared/main/main
 ```shell
 uv run vscode-diff ../13_wifi_scan/components/BSP/MYWIFI/_my_wifi.c ../13_wifi_scan/components/BSP/MYWIFI/my_wifi.c
 ```
+
+uv run vscode-diff ../../21_ble_led/sdkconfig ../../21_ble_led/sdkconfig.old
