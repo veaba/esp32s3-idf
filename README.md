@@ -32,6 +32,8 @@
 <details>
   <summary> esp32 通过 EspTouchForHarmony App 进行批量组网 </summary>
 
+![esp32-s3-join-wifi-successful.png](docs/public/esp32-s3-join-wifi-successful.png)
+
 ![app-smart-config-esptouch.png](docs/public/app-smart-config-esptouch.png)
 
 c 项目 `19_wifi_auto_esptouch` + [EsptouchForHarmony 鸿蒙版本 App](https://github.com/veaba/EsptouchForHarmony/) 实现了 `EspTouch_v2` 协议的智能组网的演示，方便将批量的 `esp32` IoT 设备通过手机 App 推送 Wifi 信息，以方便批量组网。
