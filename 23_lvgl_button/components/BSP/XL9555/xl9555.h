@@ -54,7 +54,7 @@ esp_err_t xl9555_write_bytes(uint8_t reg, uint8_t *data, size_t len);
 uint16_t xl9555_pin_write(uint16_t pin, int val);
 int xl9555_pin_read(uint16_t pin);
 uint16_t xl9555_ioconfig(uint16_t config_value);
-void xl9555_init(i2c_obj_t self);
+esp_err_t xl9555_init(i2c_obj_t self);
 uint8_t xl9555_key_scan(uint8_t mode);
 
 #endif

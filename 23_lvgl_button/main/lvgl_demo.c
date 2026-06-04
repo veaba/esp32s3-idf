@@ -61,9 +61,13 @@ static void lcd_hard_reset(void) {
 static esp_err_t app_lcd_init(void) {
   ESP_LOGI(TAG, "Initialize SPI LCD (ST7789) with XL9555 IO expander");
 
-  /* 1. 初始化 I2C 和 XL9555（必须先于 LCD 初始化） */
+  /* 1. 初始化 I2C 和 XL9555 */
   i2c_obj_t i2c0_master = iic_init(I2C_NUM_0);
-  xl9555_init(i2c0_master);
+  esp_err_t xl9555_ret = xl9555_init(i2c0_master);
+  if (xl9555_ret != ESP_OK) {
+    ESP_LOGW(TAG, "XL9555 not available (QEMU or I2C error), LCD init skipped");
+    return ESP_FAIL;
+  }
 
   /* 2. 通过 XL9555 开启 LCD 电源和背光 */
   xl9555_pin_write(LCD_PWR_XL9555_PIN, 1);
@@ -187,7 +191,14 @@ void app_main(void) {
   ESP_ERROR_CHECK(lvgl_port_init(&lvgl_cfg));
 
   /* 初始化显示（包含 I2C + XL9555 + SPI LCD） */
-  ESP_ERROR_CHECK(app_lcd_init());
+  esp_err_t lcd_ret = app_lcd_init();
+  if (lcd_ret != ESP_OK) {
+    ESP_LOGW(TAG, "LCD init failed, running LVGL without display");
+    /* 主循环空转，不再尝试操作 LCD */
+    while (1) {
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  }
 
   /* 创建 UI（在 LVGL 线程安全上下文中） */
   if (lvgl_port_lock(0)) {

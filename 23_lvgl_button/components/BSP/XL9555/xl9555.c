@@ -96,36 +96,29 @@ uint16_t xl9555_ioconfig(uint16_t config_value)
     if (err != ESP_OK)
     {
       retry--;
-      vTaskDelay(pdMS_TO_TICKS(100)); // 等待 100ms 后重试
-      xl9555_failed++;
       ESP_LOGE("XL9555", "Failed to write config, retrying... (%d)", retry);
-
-      xl9555_failed = 1;
-
-      if ((retry <= 0) && xl9555_failed)
-      {
-        vTaskDelay(pdMS_TO_TICKS(5000)); // 等待 5s 后重试
-        esp_restart();                   // 重启设备
-      }
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
     else
     {
       xl9555_failed = 0;
-      break;
+      return config_value;
     }
-  } while (retry);
+  } while (retry > 0);
 
-  return config_value;
+  xl9555_failed = 1;
+  ESP_LOGE("XL9555", "XL9555 not available (QEMU or I2C error), skipping");
+  return 0;
 }
 
-void xl9555_init(i2c_obj_t self)
+esp_err_t xl9555_init(i2c_obj_t self)
 {
   uint8_t r_data[2];
 
   if (self.init_flag == ESP_FAIL)
   {
     ESP_LOGE("XL9555", "I2C initialization failed");
-    iic_init(I2C_NUM_0); // 初始化 I2C0
+    iic_init(I2C_NUM_0);
   }
 
   xl9555_i2c_master = self;
@@ -138,12 +131,17 @@ void xl9555_init(i2c_obj_t self)
   gpio_init_struct.pull_up_en = GPIO_PULLUP_ENABLE;
   gpio_config(&gpio_init_struct);
 
-  // 清除上一次中断状态
   xl9555_read_byte(r_data, 2);
 
-  xl9555_ioconfig(0xF003);
-  xl9555_pin_write(BEEP_IO, 1);   // 蜂鸣器
-  xl9555_pin_write(SPK_EN_IO, 1); // 扬声器使能
+  uint16_t cfg = xl9555_ioconfig(0xF003);
+  if (cfg == 0)
+  {
+    return ESP_FAIL;
+  }
+
+  xl9555_pin_write(BEEP_IO, 1);
+  xl9555_pin_write(SPK_EN_IO, 1);
+  return ESP_OK;
 }
 
 uint8_t xl9555_key_scan(uint8_t mode)
