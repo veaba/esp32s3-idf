@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Attach
+UseTab: Never
+IndentCaseLabels: true
+
+ColumnLimit: 200
+# 强制将所有可能的表达式保持在一行
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false

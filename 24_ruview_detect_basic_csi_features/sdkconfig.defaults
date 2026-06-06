@@ -1,0 +1,24 @@
+# This file was generated using idf.py save-defconfig. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) Project Minimal Configuration
+#
+CONFIG_BT_ENABLED=y
+# CONFIG_BT_BLE_50_FEATURES_SUPPORTED is not set
+CONFIG_BT_BLE_42_FEATURES_SUPPORTED=y
+# CONFIG_BT_LE_50_FEATURE_SUPPORT is not used on ESP32, ESP32-C3 and ESP32-S3.
+# CONFIG_BT_LE_50_FEATURE_SUPPORT is not set
+
+# Flash: 4MB (this chip has Embedded Flash 4MB)
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+
+# Enable WiFi CSI so we can probe it
+CONFIG_ESP_WIFI_CSI_ENABLED=y
+
+# Verbose logging so user sees everything
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+
+# Bigger main task stack for printf-heavy capability dump
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Enable temperature sensor driver
+CONFIG_SOC_TEMP_SENSOR_SUPPORTED=y

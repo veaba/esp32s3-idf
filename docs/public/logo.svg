@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 180" width="560" height="180">
+  <defs>
+    <!-- 锈蚀金属渐变 -->
+    <linearGradient id="rustGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#CD5C5C;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#A0522D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5C4033;stop-opacity:1" />
+    </linearGradient>
+    <!-- 铁锈深色 -->
+    <linearGradient id="rustGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B3E2E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3E2723;stop-opacity:1" />
+    </linearGradient>
+    <!-- 磨损金属高光 -->
+    <linearGradient id="metalWear" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9E9E9E;stop-opacity:0.6" />
+      <stop offset="50%" style="stop-color:#E0E0E0;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#757575;stop-opacity:0.5" />
+    </linearGradient>
+    <!-- 污渍/油渍 -->
+    <radialGradient id="oilStain" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#2E2E2E;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#1A1A1A;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <!-- 废土背景：粗糙混凝土色 -->
+  <rect x="0" y="0" width="560" height="180" fill="#2A2418"/>
+
+  <!-- 背景纹理：划痕与污渍 -->
+  <path d="M50,20 L90,18 M120,15 L200,22 M350,16 L430,20 M500,18 L530,22" stroke="#4A3E2E" stroke-width="1" opacity="0.5"/>
+  <path d="M30,60 L70,65 M400,58 L460,62" stroke="#5C4A3A" stroke-width="0.8" opacity="0.4"/>
+  <circle cx="450" cy="130" r="25" fill="url(#oilStain)"/>
+  <circle cx="80" cy="40" r="18" fill="url(#oilStain)"/>
+
+  <!-- === 废土盾牌（锈蚀焊接钢板）=== -->
+  <!-- 焊接缝隙 -->
+  <path d="M105,22 L405,22 L420,42 L425,72 L415,132 L395,154 L280,167 L165,154 L135,132 L115,72 L120,42 Z" 
+        fill="none" stroke="#5C4033" stroke-width="4" stroke-dasharray="8,3" opacity="0.8"/>
+  <!-- 主盾牌（锈蚀金属） -->
+  <path d="M108,24 L402,24 L417,44 L422,72 L412,130 L392,152 L280,164 L168,152 L138,130 L118,72 L123,44 Z" 
+        fill="url(#rustGrad2)" stroke="url(#rustGrad1)" stroke-width="2.5" opacity="0.95"/>
+  
+  <!-- 金属补丁（焊接板） -->
+  <path d="M200,30 L230,30 L230,45 L200,45 Z" fill="#6B4C3B" stroke="#8B6914" stroke-width="1" opacity="0.7"/>
+  <path d="M330,140 L370,140 L370,155 L330,155 Z" fill="#6B4C3B" stroke="#8B6914" stroke-width="1" opacity="0.6"/>
+  
+  <!-- 铆钉装饰 -->
+  <circle cx="140" cy="40" r="3" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+  <circle cx="370" cy="40" r="3" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+  <circle cx="140" cy="148" r="3" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+  <circle cx="370" cy="148" r="3" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+  <circle cx="280" cy="165" r="3" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+
+  <!-- 锈迹斑点 -->
+  <circle cx="180" cy="100" r="8" fill="#CD5C5C" opacity="0.3"/>
+  <circle cx="350" cy="80" r="6" fill="#B22222" opacity="0.25"/>
+  <circle cx="250" cy="140" r="5" fill="#CD5C5C" opacity="0.2"/>
+
+  <!-- === 废土摩托车轮毂（生锈+简易焊接）=== -->
+  <!-- 外圈（粗糙铁圈） -->
+  <circle cx="160" cy="80" r="38" fill="none" stroke="url(#rustGrad1)" stroke-width="4"/>
+  <circle cx="160" cy="80" r="35" fill="none" stroke="#5C4033" stroke-width="1.5" stroke-dasharray="4,6"/>
+  <circle cx="160" cy="80" r="28" fill="none" stroke="#8B6914" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- 轮毂辐条（粗铁丝焊接） -->
+  <g stroke="#6B3E2E" stroke-width="3" opacity="0.9">
+    <line x1="160" y1="46" x2="160" y2="68"/>
+    <line x1="160" y1="92" x2="160" y2="114"/>
+    <line x1="126" y1="80" x2="148" y2="80"/>
+    <line x1="172" y1="80" x2="194" y2="80"/>
+    <line x1="136" y1="56" x2="152" y2="72"/>
+    <line x1="168" y1="88" x2="184" y2="104"/>
+    <line x1="184" y1="56" x2="168" y2="72"/>
+    <line x1="152" y1="88" x2="136" y2="104"/>
+  </g>
+  <!-- 焊点 -->
+  <circle cx="160" cy="46" r="3" fill="#8B6914"/>
+  <circle cx="160" cy="114" r="3" fill="#8B6914"/>
+  <circle cx="126" cy="80" r="3" fill="#8B6914"/>
+  <circle cx="194" cy="80" r="3" fill="#8B6914"/>
+  
+  <!-- 轮毂中心（生锈轴承） -->
+  <circle cx="160" cy="80" r="9" fill="#4A2A1A" stroke="#8B6914" stroke-width="2"/>
+  <circle cx="160" cy="80" r="3" fill="#1A1A1A"/>
+
+  <!-- === 废土烟雾/尘土（替代酒香）=== -->
+  <path d="M200,95 Q225,85 220,70 Q215,58 240,52" fill="none" stroke="#8B7355" stroke-width="3" opacity="0.6" stroke-linecap="round"/>
+  <path d="M198,102 Q218,92 214,78" fill="none" stroke="#A0896E" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <circle cx="225" cy="75" r="4" fill="#6B5A4A" opacity="0.4"/>
+  <circle cx="235" cy="60" r="3" fill="#7B6B5A" opacity="0.3"/>
+
+  <!-- === 品牌文字：MOTO 酒馆（废土喷涂风格）=== -->
+  <!-- 磨损/刮擦痕迹 -->
+  <line x1="240" y1="42" x2="400" y2="42" stroke="#3E2723" stroke-width="2" opacity="0.5"/>
+  <line x1="245" y1="100" x2="380" y2="100" stroke="#3E2723" stroke-width="1.5" opacity="0.4"/>
+  
+  <!-- 主文字（粗糙喷漆） -->
+  <text x="245" y="62" font-family="'Impact', 'Arial Black', 'Stencil', sans-serif" font-size="46" 
+        fill="url(#rustGrad1)" letter-spacing="6" font-weight="900"
+        stroke="#3E2723" stroke-width="1">
+    MOTO
+  </text>
+  <!-- 喷漆飞溅效果 -->
+  <circle cx="390" cy="48" r="1.5" fill="#CD5C5C" opacity="0.6"/>
+  <circle cx="395" cy="55" r="1" fill="#8B4513" opacity="0.5"/>
+  <circle cx="388" cy="58" r="1.2" fill="#A0522D" opacity="0.4"/>
+  <circle cx="240" cy="52" r="1" fill="#CD5C5C" opacity="0.5"/>
+  <circle cx="235" cy="58" r="1.5" fill="#8B4513" opacity="0.4"/>
+
+  <!-- 酒馆（磨损手写风格） -->
+  <text x="255" y="95" font-family="'Courier New', monospace" font-size="22" 
+        fill="#A0896E" letter-spacing="5" font-weight="700" opacity="0.9">
+    酒  馆
+  </text>
+  <!-- 刮擦 -->
+  <line x1="255" y1="98" x2="320" y2="98" stroke="#3E2723" stroke-width="1" opacity="0.5"/>
+  <line x1="340" y1="90" x2="380" y2="90" stroke="#3E2723" stroke-width="0.8" opacity="0.4"/>
+
+  <!-- 域名 motoguan.com（金属铭牌刻字） -->
+  <text x="245" y="118" font-family="'Courier New', monospace" font-size="11" 
+        fill="#8B7355" letter-spacing="2" opacity="0.8">
+    motoguan.com
+  </text>
+
+  <!-- === 底部装饰：生锈链条 === -->
+  <g transform="translate(245, 140)">
+    <rect x="0" y="0" width="14" height="8" rx="2" fill="#4A2A1A" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="4" cy="4" r="1.5" fill="#6B4C3B"/>
+    <circle cx="10" cy="4" r="1.5" fill="#6B4C3B"/>
+    
+    <rect x="18" y="0" width="14" height="8" rx="2" fill="#5C3A2A" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="22" cy="4" r="1.5" fill="#6B4C3B"/>
+    <circle cx="28" cy="4" r="1.5" fill="#6B4C3B"/>
+    
+    <rect x="36" y="0" width="14" height="8" rx="2" fill="#4A2A1A" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="40" cy="4" r="1.5" fill="#6B4C3B"/>
+    <circle cx="46" cy="4" r="1.5" fill="#6B4C3B"/>
+    
+    <rect x="54" y="0" width="14" height="8" rx="2" fill="#5C3A2A" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="58" cy="4" r="1.5" fill="#6B4C3B"/>
+    <circle cx="64" cy="4" r="1.5" fill="#6B4C3B"/>
+    
+    <rect x="72" y="0" width="14" height="8" rx="2" fill="#4A2A1A" stroke="#8B6914" stroke-width="1"/>
+    <circle cx="76" cy="4" r="1.5" fill="#6B4C3B"/>
+    <circle cx="82" cy="4" r="1.5" fill="#6B4C3B"/>
+  </g>
+
+  <!-- === 左侧装饰：废土摩托车把 === -->
+  <path d="M78,35 L68,32 L60,42" stroke="#6B3E2E" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M78,48 L68,46 L60,42" stroke="#5C4033" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- 破损手把胶套 -->
+  <rect x="60" y="38" width="8" height="10" rx="2" fill="#2E1A0E" stroke="#4A2A1A" stroke-width="1"/>
+  <!-- 生锈螺丝 -->
+  <circle cx="78" cy="35" r="2.5" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+  <circle cx="78" cy="48" r="2.5" fill="#8B6914" stroke="#5C4033" stroke-width="0.5"/>
+
+  <!-- === 右侧装饰：废土旗帜/布料 === -->
+  <path d="M440,50 L455,48 L460,58 L465,70 L455,72 L442,68 Z" fill="#5C3A2A" stroke="#8B6914" stroke-width="1" opacity="0.8"/>
+  <path d="M445,55 L452,53" stroke="#A0896E" stroke-width="0.8" opacity="0.5"/>
+  <path d="M446,62 L453,60" stroke="#A0896E" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- 角落废土标识 -->
+  <text x="15" y="170" font-family="'Courier New', monospace" font-size="8" fill="#6B4C3B" opacity="0.6">
+    WASTELAND · 末世机车
+  </text>
+  <text x="440" y="170" font-family="'Courier New', monospace" font-size="8" fill="#6B4C3B" opacity="0.6">
+    [SCRAP_MADE]
+  </text>
+
+  <!-- 整体做旧划痕 -->
+  <line x1="60" y1="130" x2="100" y2="128" stroke="#3E2723" stroke-width="1" opacity="0.3"/>
+  <line x1="450" y1="100" x2="500" y2="98" stroke="#3E2723" stroke-width="0.8" opacity="0.3"/>
+  <line x1="350" y1="170" x2="380" y2="170" stroke="#3E2723" stroke-width="1" opacity="0.2"/>
+</svg>
